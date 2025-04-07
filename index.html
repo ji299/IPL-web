@@ -2,25 +2,16 @@
 <html lang="zh">
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>IPL_LAB</title>
   <style>
     /* 全局設定 */
     body {
       background: url('ipllogo.PNG') no-repeat center center fixed;
       background-size: cover;
-    }
-    /* 頁首標題 */
-    .header {
-      text-align: center;
-      padding: 50px;
-    }
-    .header h1 {
       margin: 0;
-      color: #dfedec;                   /* 修改標題顏色 */
-      font-family: "times new roman", sans-serif;  /* 修改標題字型 */
-      font-size: 80px; /* 修改標題大小 */
     }
-    /* 主內容區 */
+    /* 主要內容區 */
     .content {
       min-height: 490px;
       display: flex;
@@ -34,7 +25,7 @@
       background-color: rgba(0, 0, 0, 0.5);
     }
     .data-section h2 {
-      font-family: "times new roman", sans-serif;
+      font-family: "Times New Roman", sans-serif;
       font-size: 28px;
       font-weight: bold;
       color: rgba(255, 204, 0, 0.89);
@@ -44,9 +35,9 @@
       width: 100%;
       border-collapse: collapse;
       margin-top: 26px;
-      font-family: "Verdana", sans-serif; /* 表格內文字字型 */
-      font-size: 20px;                    /* 表格內文字大小 */
-      color: #ffffff;                     /* 表格內文字顏色 */
+      font-family: Verdana, sans-serif;
+      font-size: 20px;
+      color: #ffffff;
     }
     table, th, td {
       border: 1px solid #fff;
@@ -58,31 +49,25 @@
   </style>
 </head>
 <body>
-  <!-- 若有需要可新增頁首標題 -->
-  <div class="content">
-    <!-- 可放置 logo 圖片 -->
-  </div>
+  <!-- 可依需求增加其他元素 -->
+  <div class="content"></div>
   <div class="data-section">
     <h2>本週值日生</h2>
     <div id="result"></div>
   </div>
 
   <script>
-    // 解析自訂格式的日期字串
+    // 解析自訂日期字串 (格式：YYYY/MM/DD AM/PM HH:mm)
     function parseCustomDate(str) {
       const parts = str.split(' ');
       if (parts.length === 3) {
-        const datePart = parts[0];
-        const ampmPart = parts[1];
-        const timePart = parts[2];
-
+        const [datePart, ampm, timePart] = parts;
         const [year, month, day] = datePart.split('/').map(Number);
         let [hour, minute] = timePart.split(':').map(Number);
-
-        if (ampmPart.toUpperCase() === 'PM' && hour < 12) {
+        if (ampm.toUpperCase() === 'PM' && hour < 12) {
           hour += 12;
         }
-        if (ampmPart.toUpperCase() === 'AM' && hour === 12) {
+        if (ampm.toUpperCase() === 'AM' && hour === 12) {
           hour = 0;
         }
         return new Date(year, month - 1, day, hour, minute);
@@ -90,26 +75,25 @@
       return new Date(str);
     }
 
-    // 取得指定日期所在週的星期一
-    function getMonday(d) {
-      const date = new Date(d);
-      const day = date.getDay();
-      const diff = date.getDate() - day + (day === 0 ? -6 : 1);
-      date.setDate(diff);
-      date.setHours(0, 0, 0, 0);
-      return date;
+    // 取得指定日期所屬週的星期一
+    function getMonday(date) {
+      const d = new Date(date);
+      const day = d.getDay();
+      const diff = d.getDate() - day + (day === 0 ? -6 : 1);
+      d.setDate(diff);
+      d.setHours(0, 0, 0, 0);
+      return d;
     }
 
-    // 解析 CSV 檔案的內容
+    // 解析 CSV 內容
     function parseCSV(csvText) {
-      let lines = csvText.trim().split('\n');
-      // 如有需要排除特定行，可在此處調整（此處排除第二行）
-      lines = lines.filter((_, idx) => idx !== 1);
-      const data = lines.map(line => line.split(','));
-      return data;
+      const lines = csvText.trim().split('\n');
+      // 排除不需要的行，如第二行（可依需求調整）
+      const filtered = lines.filter((_, index) => index !== 1);
+      return filtered.map(line => line.split(','));
     }
 
-    // 原始的自訂標題（11 欄）
+    // 自訂標題 (11 欄)
     const customHeaders = [
       "日期",
       "洗手台/微波爐/冰箱/白板",
@@ -121,28 +105,28 @@
       "實驗區靜電除塵拖",
       "實驗區垃圾桶清理",
       "實驗區準備桌清理",
-      "光學桌排水/空壓機機油確認與排水",
+      "光學桌排水/空壓機機油確認與排水"
     ];
 
     let sheetData = [];
-    let currentWeekStart = getMonday(new Date()); // 記錄目前週的星期一
+    let currentWeekStart = getMonday(new Date());
 
-    // 載入 CSV 檔案並更新資料
+    // 載入 CSV 並更新畫面
     function loadAndDisplayData() {
       fetch('IPLSheet.csv')
         .then(response => response.text())
         .then(csvText => {
           sheetData = parseCSV(csvText);
           console.log("Parsed CSV data:", sheetData);
-          filterDataByWeek(new Date());
+          displayWeekData(new Date());
         })
         .catch(error => {
           console.error('CSV 讀取錯誤:', error);
         });
     }
 
-    // 篩選一週內的資料並建立表格
-    function filterDataByWeek(targetDate) {
+    // 篩選本週資料並生成表格
+    function displayWeekData(targetDate) {
       const resultDiv = document.getElementById('result');
       resultDiv.innerHTML = '';
 
@@ -150,12 +134,11 @@
       const weekEnd = new Date(weekStart);
       weekEnd.setDate(weekEnd.getDate() + 7);
 
-      // 根據第一欄位 (日期) 判斷是否在本週內
       const filteredRows = sheetData.filter(row => {
-        if (row[0] === "2025/04/07 AM 09:30") return false; // 範例排除
+        // 可移除或修改這行以排除特定資料
+        if (row[0] === "2025/04/07 AM 09:30") return false;
         if (row[0]) {
           const rowDate = parseCustomDate(row[0]);
-          if (isNaN(rowDate)) return false;
           rowDate.setHours(0, 0, 0, 0);
           return (rowDate >= weekStart && rowDate < weekEnd);
         }
@@ -167,12 +150,11 @@
         return;
       }
 
-      // 建立表格
+      // 生成表格
       const table = document.createElement('table');
       const thead = document.createElement('thead');
       const tbody = document.createElement('tbody');
 
-      // 建立標題列（11 欄）
       const headerRow = document.createElement('tr');
       customHeaders.forEach(header => {
         const th = document.createElement('th');
@@ -181,19 +163,15 @@
       });
       thead.appendChild(headerRow);
 
-      // 處理每一筆資料
       filteredRows.forEach(row => {
-        // 如果第二欄位 (index = 1) 為 "0"，就把它移除並將後面的資料往前遞補
         if (row[1] === "0") {
           row.splice(1, 1);
           row.push("");
         }
-
-        // 建立表格列 (11 欄)
         const tr = document.createElement('tr');
         for (let i = 0; i < customHeaders.length; i++) {
           const td = document.createElement('td');
-          td.textContent = row[i] ?? "";
+          td.textContent = row[i] || "";
           tr.appendChild(td);
         }
         tbody.appendChild(tr);
@@ -204,19 +182,19 @@
       resultDiv.appendChild(table);
     }
 
-    // 初始載入資料
+    // 初次載入資料
     loadAndDisplayData();
 
-    // 每小時檢查一次是否跨週，若跨週則重新載入資料並更新顯示
+    // 每小時檢查是否跨週，若跨週則重新載入資料
     setInterval(() => {
       const now = new Date();
       const newWeekStart = getMonday(now);
       if (newWeekStart.getTime() !== currentWeekStart.getTime()) {
         currentWeekStart = newWeekStart;
-        console.log("跨週了，重新載入資料。");
+        console.log("跨週更新資料");
         loadAndDisplayData();
       }
-    }, 3600000); // 每 3600000 毫秒 = 1 小時執行一次
+    }, 3600000);
   </script>
 </body>
 </html>
