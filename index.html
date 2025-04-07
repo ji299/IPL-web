@@ -7,7 +7,7 @@
   <style>
     /* 全局設定 */
     body {
-      background: url('ipllogo.png') no-repeat center center fixed;
+      background: url('ipllogo.PNG') no-repeat center center fixed;
       background-size: cover;
       margin: 0;
     }
@@ -113,7 +113,7 @@
 
     // 載入 CSV 並更新畫面
     function loadAndDisplayData() {
-      fetch('IPLsheet.csv')
+      fetch('IPLSheet.csv')
         .then(response => response.text())
         .then(csvText => {
           sheetData = parseCSV(csvText);
